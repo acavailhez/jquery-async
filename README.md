@@ -28,3 +28,30 @@ Here is a simple HTML with jQuery and jQuery Async installed:
 <body></body>
 </html>
 ```
+
+A quick dive in with examples
+-------------
+### .click() becomes .async()
+
+Before jquery-async, a button waiting 2 seconds to print a text would have looked like this:
+```html
+	<a id="my-button">Click me</a>
+	<div id="hidden-text" style="display:none;">Surprise!</div>
+```
+```javascript
+	$('#my-button').click(function(){
+		setTimeout(function(){
+			$('#hiddent-text').show();
+			},2000);
+	});
+```
+
+If you want to add a progress animation to this with jquery, change the javascript to:
+```javascript
+	$('#my-button').async(function(deferred){
+		setTimeout(function(){
+			$('#hiddent-text').show();
+			deferred.resolve();
+			},2000);
+	});
+```
