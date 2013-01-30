@@ -16,7 +16,6 @@ Here is a simple HTML with jQuery and jQuery Async installed:
 
     <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet">
     <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap-responsive.css" rel="stylesheet">
-    <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap-responsive.css" rel="stylesheet">
     <script src="http://code.jquery.com/jquery-1.9.0.min.js"></script>
 
     <link href="../css/k.loader.css" rel="stylesheet">
@@ -42,7 +41,7 @@ Before jquery-async, a button waiting 2 seconds to print a text would have looke
 	$('#my-button').click(function(){
 		setTimeout(function(){
 			$('#hiddent-text').show();
-			},2000);
+		},2000);
 	});
 ```
 
@@ -52,6 +51,8 @@ If you want to add a progress animation to this with jquery, change the javascri
 		setTimeout(function(){
 			$('#hiddent-text').show();
 			deferred.resolve();
-			},2000);
+		},2000);
 	});
 ```
+`$.async()` takes a function as a first parameter, which is passed a `$.Deferred` that you can either `.resolve()` or `.reject()`
+When the `deferred` object is resolved or rejected, the animation on the button will stop and turn either green or red. The button becomes clickable again.
