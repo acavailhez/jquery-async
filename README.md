@@ -125,3 +125,9 @@ You can embed those params directly in your button's attributes, while you const
 	    deferred.resolve();
 	}
 ```
+
+License
+-------------
+
+This library is distributed under the Apache License,
+Use it for your personal or commercial projects.
