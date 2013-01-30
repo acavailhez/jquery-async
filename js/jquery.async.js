@@ -2,8 +2,32 @@
 //asyncFunc returns: Deferred, true, false
 jQuery.fn.async = function(async, options) {
     if(async === 'ajax'){
-        $(this).async(function(){
-            return $.ajax(options);
+        $(this).async(function(deferred){
+            var ajaxOptions = $.extend({},options);
+            if(ajaxOptions.success){
+                var successFunction = ajaxOptions.success;
+                ajaxOptions.success=function(data){
+                    successFunction(data,deferred);
+                }
+            }
+            if(ajaxOptions.error){
+                var errorFunction = ajaxOptions.error;
+                ajaxOptions.error=function(data){
+                    errorFunction(data,deferred);
+                }
+            }
+            if($.isFunction(options.url)){
+                ajaxOptions.url = options.url(deferred);
+            }
+            if(ajaxOptions.url === true){
+                deferred.resolve();
+            }
+            if(ajaxOptions.url){
+                return $.ajax(ajaxOptions);
+            }
+            else{
+                deferred.reject();
+            }
         },options);
         return;
     }
@@ -23,15 +47,35 @@ jQuery.fn.async = function(async, options) {
             else{
                 //duck-check if returned is a Deferred.promise
                 if(returned && returned.done && returned.fail){
-                    deferred = returned;
+                    //hook on the returned instead of deferred, but keep deferred on priority
+                    var loaderLock = false;
+                    returned
+                        .done(function(){
+                            !loaderLock&&$this.loader('success');
+                        })
+                        .fail(function(){
+                            !loaderLock&&$this.loader('error');
+                        });
+                    deferred
+                        .done(function(){
+                            $this.loader('success');
+                            loaderLock=true;
+                        })
+                        .fail(function(){
+                            $this.loader('error');
+                            loaderLock=true;
+                        });
                 }
-                deferred
-                    .done(function(){
-                        $this.loader('success');
-                    })
-                    .fail(function(){
-                        $this.loader('error');
-                    });
+                else{
+                    deferred
+                        .done(function(){
+                            $this.loader('success');
+                        })
+                        .fail(function(){
+                            $this.loader('error');
+                        });
+                }
+
             }
         }
     });
