@@ -1,5 +1,5 @@
 /* ===================================================
- * jquery-async v0.4
+ * jquery-async v0.5
  * https://github.com/acavailhez/jquery-async
  * ===================================================
  * Copyright 2013 Arnaud CAVAILHEZ & Michael JAVAULT
@@ -18,6 +18,24 @@
  * ========================================================== */
 
 jQuery.fn.async = function(async, options) {
+
+    var $this = $(this);
+
+    if(async === 'init'){
+        var $element = $(this);
+        //activate async on subelements of $elements
+        //this function is nilpotent
+
+        //every tag with a 'async-bind' attribute will be asynched
+        if($element.attr('async-bind')){
+            initAsync($element);
+        }
+        $('[async-function]',$element[0]).each(function(i,that){
+            initAsync(that);
+        });
+        return;
+    }
+
     if(async === 'ajax'){
         $(this).async(function(deferred){
             var ajaxOptions = $.extend({},options);
@@ -48,9 +66,18 @@ jQuery.fn.async = function(async, options) {
         },options);
         return;
     }
+
     options = $.extend({bind:'click'},options);
-    var $this = $(this);
-    $this.bind(options.bind,function(){
+
+    if(options.bind === false){
+        launchAsync();
+    }
+    else{
+        $this.bind(options.bind,launchAsync);
+    }
+
+
+    function launchAsync(){
         $this.loader('start');
         var deferred = $.Deferred();
         if($.isFunction(async)){
@@ -92,26 +119,10 @@ jQuery.fn.async = function(async, options) {
                             $this.loader('error');
                         });
                 }
-
+                1
             }
         }
-    });
-
-    return $this;
-};
-
-jQuery.fn.initChildrenAsync = function() {
-    var $element = $(this);
-    //activate async on subelements of $elements
-    //this function is nilpotent
-
-    //every tag with a "async-bind" attribute will be asynched
-    if($element.attr('async-bind')){
-        initAsync($element);
     }
-    $('[async-function]',$element[0]).each(function(i,that){
-        initAsync(that);
-    });
 
     //init async function on an element
     function initAsync(that){
@@ -132,10 +143,12 @@ jQuery.fn.initChildrenAsync = function() {
         $element.attr('async-bind',undefined);
 
     }
-}
+
+    return $this;
+};
 
 $(document).ready(function(){
-    $(document).initChildrenAsync();
+    $(document).async('init');
 });
 
 
