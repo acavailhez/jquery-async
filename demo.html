@@ -145,6 +145,96 @@
         <br/>
         <br/>
 
+        <h3>Handling params in Ajax calls</h3>
+
+        <p>Construct your API urls more easily by passing url params as a JSON object (or a function returning JSON)</p>
+        <input type="text" id="input4" placeholder="Type a US postal code, eg:94114" style="margin-bottom:0;width:240px"/>
+        <a id="button4" class="btn btn-info" loading-text="Requesting"> Get temperature</a>
+        <span id="temperature4"></span>
+        <script>
+
+            $('#button4').async('ajax',{
+                type: 'POST',
+                dataType:'jsonp',
+                root:'http://query.yahooapis.com/$version/public/yql',
+                params:function(deferred){
+                    //construct the url from the input, returns the url, or false if error
+                    var postal = $('#input4').val();
+                    if(!postal || !$.isNumeric(postal)){
+                        $('#temperature4').html('Please enter a postal code');
+                        return false;
+                    }
+                    else{
+                        var yql = encodeURIComponent('select item from weather.forecast where location="' + postal +'"');
+                        return {
+                            version:'v1',
+                            q:yql,
+                            format:'json'
+                        };
+                    }
+                },
+                success:function(json,deferred){
+                    if(json.query.results.channel.item.condition){
+                        $('#temperature4').html(json.query.results.channel.item.condition.temp+'°F');
+                        deferred.resolve();
+                    }
+                    else{
+                        $('#temperature4').html(json.query.results.channel.item.title);
+                        deferred.reject();
+                    }
+                }
+            });
+
+        </script>
+
+        <br/>
+        <br/>
+        <br/>
+
+        <p>POST data can also be automatically parsed from a JSON object (or a function returning JSON)</p>
+        <input type="text" id="input5" placeholder="Type a US postal code, eg:94114" style="margin-bottom:0;width:240px"/>
+        <a id="button5" class="btn btn-info" loading-text="Requesting"> Get temperature</a>
+        <span id="temperature5"></span>
+        <script>
+
+            $('#button5').async('ajax',{
+                type: 'POST',
+                dataType:'jsonp',
+                root:'http://query.yahooapis.com/v1/public/yql',
+                data:function(deferred){
+                    //construct the url from the input, returns the url, or false if error
+                    var postal = $('#input5').val();
+                    if(!postal || !$.isNumeric(postal)){
+                        $('#temperature5').html('Please enter a postal code');
+                        return false;
+                    }
+                    else{
+                        var yql = 'select item from weather.forecast where location="' + postal +'"';
+                        return {
+                            q:yql,
+                            format:'json'
+                        };
+                    }
+                },
+                success:function(json,deferred){
+                    if(json.query.results.channel.item.condition){
+                        $('#temperature5').html(json.query.results.channel.item.condition.temp+'°F');
+                        deferred.resolve();
+                    }
+                    else{
+                        $('#temperature5').html(json.query.results.channel.item.title);
+                        deferred.reject();
+                    }
+                }
+            });
+
+        </script>
+
+
+        <br/>
+        <br/>
+        <br/>
+
         <br/>
         <br/>
         <br/>
