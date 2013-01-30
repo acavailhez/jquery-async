@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>ASYNC</title>
+
+
+
+    <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet">
+    <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap-responsive.css" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery-1.9.0.min.js"></script>
+
+    <link href="css/jquery.loader.css" rel="stylesheet">
+
+    <script src="js/jquery.loader.js"></script>
+    <script src="js/jquery.async.js"></script>
+
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <h1>Asynchronous button loading</h1>
+
+            <a id="button1" class="btn btn-info"> Test with buttons</a>
+            <script>
+                $('#button1').async(function(deferred){
+
+                    var $done = $('#button1-done');
+                    var $fail = $('#button1-fail');
+
+                    $done.show().click(function(){
+                        deferred.resolve();
+                        $done.hide();$fail.hide();
+                    });
+                    $fail.show().click(function(){
+                        deferred.reject();
+                        $done.hide();$fail.hide();
+                    });
+
+                    deferred
+                            .done(function(){
+                            })
+                            .fail(function(){
+                            })
+                });
+
+            </script>
+            <a id="button1-done" class="btn btn-success" style="display:none;">done</a>
+            <a id="button1-fail" class="btn btn-danger" style="display:none;">fail</a>
+
+            <br/>
+            <br/>
+
+            <a id="button2" class="btn btn-info" loading-text="AJAX"> Test with ajax</a>
+            <script>
+                $('#button2').async('ajax',{
+                    type: 'POST',
+                    dataType:'html',
+                    url: 'http://www.google.com',
+                    success:function(html){
+                        alert(html);
+                    },
+                    error:function(){
+                        console.log('ajax call failed');
+                    }
+                });
+
+            </script>
+
+
+            <br/>
+            <br/>
+
+            <a async-function="asyncFunctionTest" async-params="{timeout:1500}" class="btn btn-info"> Test embed params</a>
+            <script>
+                function asyncFunctionTest(deferred,params){
+                    setTimeout(function(){
+                        deferred.resolve();
+                    },params.timeout);
+                };
+
+            </script>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+</body>
+</html>
