@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>ASYNC</title>
+    <title>jQuery Async</title>
 
 
 
@@ -21,65 +21,94 @@
 <div class="container">
     <div class="row">
         <div class="span12">
-            <h1>Asynchronous button loading</h1>
+            <h1 style="text-align: center;">jQuery Async Demo</h1>
 
-            <a id="button1" class="btn btn-info"> Test with buttons</a>
+            <h3>Asynchronous user action</h3>
+
+            <a id="button1" class="btn btn-info"> Test asynchronous user action</a>
             <script>
                 $('#button1').async(function(deferred){
 
-                    var $done = $('#button1-done');
-                    var $fail = $('#button1-fail');
+                    $('#button1-buttons').show();
 
-                    $done.show().click(function(){
+                    $('#button1-done').click(function(){
                         deferred.resolve();
-                        $done.hide();$fail.hide();
+                        $('#button1-buttons').hide();
                     });
-                    $fail.show().click(function(){
+                    $('#button1-fail').click(function(){
                         deferred.reject();
-                        $done.hide();$fail.hide();
+                        $('#button1-buttons').hide();
                     });
-
-                    deferred
-                            .done(function(){
-                            })
-                            .fail(function(){
-                            })
                 });
 
             </script>
-            <a id="button1-done" class="btn btn-success" style="display:none;">done</a>
-            <a id="button1-fail" class="btn btn-danger" style="display:none;">fail</a>
+            <span id="button1-buttons" style="display:none;">
+                <a id="button1-done" class="btn btn-success" >Action done</a>
+                <a id="button1-fail" class="btn btn-danger">Action failed</a>
+            </span>
+
 
             <br/>
             <br/>
+            <br/>
 
-            <a id="button2" class="btn btn-info" loading-text="AJAX"> Test with ajax</a>
+            <h3>Ajax button</h3>
+
+            <input type="text" id="input2" placeholder="Type a postal code" style="margin-bottom:0;"/>
+            <a id="button2" class="btn btn-info" loading-text="Requesting"> Get temperature</a>
+            <span id="temperature"></span>
             <script>
+
                 $('#button2').async('ajax',{
                     type: 'POST',
-                    dataType:'html',
-                    url: 'http://www.google.com',
-                    success:function(html){
-                        alert(html);
+                    dataType:'jsonp',
+                    url: function(deferred){
+                        //construct the url from the input, returns the url, or false if error
+                        var postal = $('#input2').val();
+                        if(!postal || !$.isNumeric(postal)){
+                            $('#temperature').html('Please enter a postal code');
+                            return false;
+                        }
+                        else{
+                            var yql = encodeURIComponent('select item from weather.forecast where location="' + postal +'"');
+                            return 'http://query.yahooapis.com/v1/public/yql?q=' + yql + '&format=json';
+                        }
                     },
-                    error:function(){
-                        console.log('ajax call failed');
+                    success:function(json,deferred){
+                        if(json.query.results.channel.item.condition){
+                            $('#temperature').html(json.query.results.channel.item.condition.temp+'°F');
+                            deferred.resolve();
+                        }
+                        else{
+                            $('#temperature').html(json.query.results.channel.item.title);
+                            deferred.reject();
+                        }
                     }
                 });
 
             </script>
 
-
             <br/>
             <br/>
+            <br/>
 
-            <a async-function="asyncFunctionTest" async-params="{timeout:1500}" class="btn btn-info"> Test embed params</a>
+            <h3>Params embedded in HTML attributes</h3>
+            <p>Buttons with an async-function attributes will automatically be converted to asynchronous buttons</p>
+
+            <a async-function="asyncFunctionTest" async-params="{timeout:1500}" class="btn btn-info"> Test embedded params</a>
+            <a async-bind="mouseenter" async-function="asyncFunctionTest" async-params="globalObject.values" class="btn btn-info"> Test embedded params 2</a>
             <script>
                 function asyncFunctionTest(deferred,params){
                     setTimeout(function(){
                         deferred.resolve();
                     },params.timeout);
                 };
+
+                var globalObject = {
+                    values:{
+                        timeout:1000
+                    }
+                }
 
             </script>
         </div>
