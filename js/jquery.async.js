@@ -69,6 +69,10 @@ jQuery.fn.async = function(async, options) {
                         data+='&';
                     }
                     first=false;
+                    //put param in a string
+                    if($.isPlainObject(param)){
+                        param = JSON.stringify(param);
+                    }
                     data+=key+'='+encodeURIComponent(param);
                 });
                 ajaxOptions.data = data;
