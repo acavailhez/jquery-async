@@ -1,5 +1,5 @@
 /* ===================================================
- * jquery-async v0.6
+ * jquery-async v0.6.1
  * https://github.com/acavailhez/jquery-async
  * ===================================================
  * Copyright 2013 Arnaud CAVAILHEZ & Michael JAVAULT
@@ -55,7 +55,15 @@ jQuery.fn.async = function(async, options) {
 
             //construct data
             if(options.json){
-                ajaxOptions.data ='json='+encodeURIComponent(JSON.stringify(options.json));
+                ajaxOptions.data ={json:options.json};
+            }
+            if($.isFunction(options.json)){
+                var json = options.json(deferred);
+                if(!json){
+                    deferred.reject();
+                    return false;
+                }
+                ajaxOptions.data = $.extend(ajaxOptions.data,{json:json});
             }
             if($.isFunction(options.data)){
                 ajaxOptions.data = options.data(deferred);
@@ -198,7 +206,6 @@ jQuery.fn.async = function(async, options) {
                             $this.loader('error');
                         });
                 }
-                1
             }
         }
     }
