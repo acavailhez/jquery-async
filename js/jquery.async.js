@@ -1,6 +1,41 @@
-//add async to jQuery
-//asyncFunc returns: Deferred, true, false
+/* ===================================================
+ * jquery-async v0.6.2
+ * https://github.com/acavailhez/jquery-async
+ * ===================================================
+ * Copyright 2013 Arnaud CAVAILHEZ & Michael JAVAULT
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ========================================================== */
+
 jQuery.fn.async = function(async, options) {
+
+    var $this = $(this);
+
+    if(async === 'init'){
+        var $element = $(this);
+        //activate async on subelements of $elements
+        //this function is nilpotent
+
+        //every tag with a 'async-bind' attribute will be asynched
+        if($element.attr('async-bind')){
+            initAsync($element);
+        }
+        $('[async-function]',$element[0]).each(function(i,that){
+            initAsync(that);
+        });
+        return;
+    }
+
     if(async === 'ajax'){
         $(this).async(function(deferred){
             var ajaxOptions = $.extend({},options);
@@ -20,7 +55,15 @@ jQuery.fn.async = function(async, options) {
 
             //construct data
             if(options.json){
-                ajaxOptions.data ='json='+encodeURIComponent(JSON.stringify(options.json));
+                ajaxOptions.data = $.extend(ajaxOptions.data,{json:json});
+            }
+            if($.isFunction(options.json)){
+                var json = options.json(deferred);
+                if(!json){
+                    deferred.reject();
+                    return false;
+                }
+                ajaxOptions.data = $.extend(ajaxOptions.data,{json:json});
             }
             if($.isFunction(options.data)){
                 ajaxOptions.data = options.data(deferred);
@@ -34,6 +77,10 @@ jQuery.fn.async = function(async, options) {
                         data+='&';
                     }
                     first=false;
+                    //put param in a string
+                    if($.isPlainObject(param)){
+                        param = JSON.stringify(param);
+                    }
                     data+=key+'='+encodeURIComponent(param);
                 });
                 ajaxOptions.data = data;
@@ -72,9 +119,52 @@ jQuery.fn.async = function(async, options) {
         },options);
         return;
     }
+
     options = $.extend({bind:'click'},options);
-    var $this = $(this);
-    $this.bind(options.bind,function(){
+
+    if(options.bind === false){
+        launchAsync();
+    }
+    else{
+        $this.bind(options.bind,launchAsync);
+    }
+
+    // replace $var with params.var in root url
+    //eg:
+    // root: http://domain.com/api/user/$userId/$reportId/export/$name?
+    // params: {userId:425,reportId:758}
+    // returns - http://domain.com/api/user/425/758/export/
+    function createUrl(root,params){
+        var url = root;
+        params = $.extend({},params);
+        //replace $something with params params.something
+        $.each(params,function(key,param){
+            if(!param){
+                if(key !== 'value'){
+                    throw 'jquery-async: param undefined for key:'+key+' url is:'+url;
+                }
+            }
+            if(url.indexOf('$'+key)<0){
+                //url does not contains this param, add it as get
+                if(url.indexOf('?')<0){
+                    url+='?'+key+'='+param;
+                }
+                else{
+                    url+='&'+key+'='+param;
+                }
+            }
+            else{
+                url = url.replace('$'+key+'?',param);//if optional
+                url = url.replace('$'+key,param);//if not
+            }
+        });
+
+        //remove all $something? from url
+        url = removeOptionalParamsFromUrl(url);
+        return url;
+    }
+
+    function launchAsync(){
         $this.loader('start');
         var deferred = $.Deferred();
         if($.isFunction(async)){
@@ -116,72 +206,9 @@ jQuery.fn.async = function(async, options) {
                             $this.loader('error');
                         });
                 }
-
             }
         }
-    });
-
-    // replace $var with params.var in root url
-    //eg:
-    // root: http://domain.com/api/user/$userId/$reportId/export/$name?
-    // params: {userId:425,reportId:758}
-    // returns - http://domain.com/api/user/425/758/export/
-    function createUrl(root,params){
-        var url = root;
-        params = $.extend({},params);
-        //replace $something with params params.something
-        $.each(params,function(key,param){
-            if(!param){
-                if(key !== 'value'){
-                    throw 'jquery-async: param undefined for key:'+key+' url is:'+url;
-                }
-            }
-            if(url.indexOf('$'+key)<0){
-                //url does not contains this param, add it as get
-                if(url.indexOf('?')<0){
-                    url+='?'+key+'='+param;
-                }
-                else{
-                    url+='&'+key+'='+param;
-                }
-            }
-            else{
-                url = url.replace('$'+key+'?',param);//if optional
-                url = url.replace('$'+key,param);//if not
-            }
-        });
-
-        //remove all $something? from url
-        url = removeOptionalParamsFromUrl(url);
-        return url;
     }
-
-    function removeOptionalParamsFromUrl(url){
-        var nextUrl = url.replace(/\/\$([A-Za-z0-9]*)\?/,'');
-        if(nextUrl === url){
-            return url;
-        }
-        else{
-            return removeOptionalParamsFromUrl(nextUrl);
-        }
-    }
-
-
-    return $this;
-};
-
-jQuery.fn.initChildrenAsync = function() {
-    var $element = $(this);
-    //activate async on subelements of $elements
-    //this function is nilpotent
-
-    //every tag with a "async-bind" attribute will be asynched
-    if($element.attr('async-bind')){
-        initAsync($element);
-    }
-    $('[async-function]',$element[0]).each(function(i,that){
-        initAsync(that);
-    });
 
     //init async function on an element
     function initAsync(that){
@@ -202,10 +229,12 @@ jQuery.fn.initChildrenAsync = function() {
         $element.attr('async-bind',undefined);
 
     }
-}
+
+    return $this;
+};
 
 $(document).ready(function(){
-    $(document).initChildrenAsync();
+    $(document).async('init');
 });
 
 
