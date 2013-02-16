@@ -1,5 +1,5 @@
 /* ===================================================
- * jquery-async v0.6.1
+ * jquery-async v0.6.2
  * https://github.com/acavailhez/jquery-async
  * ===================================================
  * Copyright 2013 Arnaud CAVAILHEZ & Michael JAVAULT
@@ -55,7 +55,7 @@ jQuery.fn.async = function(async, options) {
 
             //construct data
             if(options.json){
-                ajaxOptions.data ={json:options.json};
+                ajaxOptions.data = $.extend(ajaxOptions.data,{json:json});
             }
             if($.isFunction(options.json)){
                 var json = options.json(deferred);

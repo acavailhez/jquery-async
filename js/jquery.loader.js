@@ -1,8 +1,11 @@
 /* ===================================================
- * jquery-loader v1.0
+ * jquery-loader v1.1
  * https://github.com/acavailhez/jquery-async
  * ===================================================
  * Copyright 2013 Arnaud CAVAILHEZ & Michael JAVAULT
+ *
+ * JQuery loader works great in combination with Twitter Bootstrap
+ * http://twitter.github.com/bootstrap/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +20,10 @@
  * limitations under the License.
  * ========================================================== */
 
- jQuery.fn.loader = function(data) {
+jQuery.fn.loader = function(data) {
     var $this = this;
     if(data === 'start'){
-       start($this);
+        start($this);
     }
     if(data === 'stop'){
         stop($this);
@@ -43,6 +46,7 @@
 
         var width = $this.outerWidth();
         var height = $this.outerHeight();
+        var zIndex = $this.css('z-index');
 
         if(width<80){
             loadingText='';
@@ -55,11 +59,22 @@
         }
 
         var $loader = $('<div class="kloader">'+loadingText+'</div>');
+
+        //load defaut style
+        $loader.css('position','absolute');
+        $loader.css('background-color','rgba(240,240,240,0.6)');
+        $loader.css('text-align','center');
+        $loader.css('overflow','hidden');
+        $loader.css('color','#000');
+        $loader.css('font-weight','bold');
+        $loader.css('font-size','12px');
+        $loader.css('z-index',zIndex+1);
+
         $loader.css('width',width);
         $loader.css('height',height);
         $loader.css('line-height',height+'px');
         $loader.css('color','black');
-        $loader.css('background-color','#eee');
+
         if($this.is('input') || $this.is('select') ){
             $loader.css('top',$this.position().top);
             $loader.css('left',$this.position().left);
