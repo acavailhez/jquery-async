@@ -1,5 +1,5 @@
 /* ===================================================
- * jquery-async v0.6.2
+ * jquery-async v0.7
  * https://github.com/acavailhez/jquery-async
  * ===================================================
  * Copyright 2013 Arnaud CAVAILHEZ & Michael JAVAULT
@@ -36,87 +36,13 @@ jQuery.fn.async = function(async, options) {
         return;
     }
 
-    if(async === 'ajax'){
-        $(this).async(function(deferred){
-            var ajaxOptions = $.extend({},options);
-            //enhance .success and .error
-            if(ajaxOptions.success){
-                var successFunction = ajaxOptions.success;
-                ajaxOptions.success=function(data){
-                    successFunction(data,deferred);
-                }
-            }
-            if(ajaxOptions.error){
-                var errorFunction = ajaxOptions.error;
-                ajaxOptions.error=function(jqXHR, textStatus, errorThrown){
-                    errorFunction(jqXHR, textStatus, errorThrown,deferred);
-                }
-            }
-
-            //construct data
-            if(options.json){
-                ajaxOptions.data = $.extend(ajaxOptions.data,{json:json});
-            }
-            if($.isFunction(options.json)){
-                var json = options.json(deferred);
-                if(!json){
-                    deferred.reject();
-                    return false;
-                }
-                ajaxOptions.data = $.extend(ajaxOptions.data,{json:json});
-            }
-            if($.isFunction(options.data)){
-                ajaxOptions.data = options.data(deferred);
-            }
-            if($.isPlainObject(ajaxOptions.data)){
-                //serialize data
-                var data = '';
-                var first=true;
-                $.each(ajaxOptions.data,function(key,param){
-                    if(!first){
-                        data+='&';
-                    }
-                    first=false;
-                    //put param in a string
-                    if($.isPlainObject(param)){
-                        param = JSON.stringify(param);
-                    }
-                    data+=key+'='+encodeURIComponent(param);
-                });
-                ajaxOptions.data = data;
-            }
-            if(ajaxOptions.data === false){
-                deferred.reject();
-                return;
-            }
-
-            //construct url
-            if(options.url){
-                if($.isFunction(options.url)){
-                    ajaxOptions.url = options.url(deferred);
-                }
-            }
-            else if(options.root){
-                var params = options.params;
-                if(!params)params={};
-                if($.isFunction(params)) params = params(deferred);
-                if(params){
-                    ajaxOptions.url = createUrl(options.root,params);
-                }
-            }
-
-
-
-            if(ajaxOptions.url === true){
-                deferred.resolve();
-            }
-            if(ajaxOptions.url){
-                return $.ajax(ajaxOptions);
-            }
-            else{
-                deferred.reject();
-            }
-        },options);
+    if(typeof async === 'string'){
+        if(jQuery.isFunction(jQuery[async])){
+            //shortcut to launch jQuery function
+            $(this).async(function(deferred){
+                return jQuery[async](options);
+            },options);
+        }
         return;
     }
 
@@ -127,41 +53,6 @@ jQuery.fn.async = function(async, options) {
     }
     else{
         $this.bind(options.bind,launchAsync);
-    }
-
-    // replace $var with params.var in root url
-    //eg:
-    // root: http://domain.com/api/user/$userId/$reportId/export/$name?
-    // params: {userId:425,reportId:758}
-    // returns - http://domain.com/api/user/425/758/export/
-    function createUrl(root,params){
-        var url = root;
-        params = $.extend({},params);
-        //replace $something with params params.something
-        $.each(params,function(key,param){
-            if(!param){
-                if(key !== 'value'){
-                    throw 'jquery-async: param undefined for key:'+key+' url is:'+url;
-                }
-            }
-            if(url.indexOf('$'+key)<0){
-                //url does not contains this param, add it as get
-                if(url.indexOf('?')<0){
-                    url+='?'+key+'='+param;
-                }
-                else{
-                    url+='&'+key+'='+param;
-                }
-            }
-            else{
-                url = url.replace('$'+key+'?',param);//if optional
-                url = url.replace('$'+key,param);//if not
-            }
-        });
-
-        //remove all $something? from url
-        url = removeOptionalParamsFromUrl(url);
-        return url;
     }
 
     function launchAsync(){
@@ -222,7 +113,7 @@ jQuery.fn.async = function(async, options) {
         //make the bind
 
         $element.async(function(deferred){
-            asyncFunction(deferred,asyncParams);
+            return asyncFunction(deferred,asyncParams,$element);
         },{bind:bind});
         //remove attributes of async
         //this makes this function nilpotent
@@ -236,11 +127,4 @@ jQuery.fn.async = function(async, options) {
 $(document).ready(function(){
     $(document).async('init');
 });
-
-
-
-
-
-
-
     
