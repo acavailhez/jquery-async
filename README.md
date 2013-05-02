@@ -24,8 +24,8 @@ Here is a simple HTML with jQuery and jQuery Async installed:
 
     <link href="../css/k.loader.css" rel="stylesheet">
 
-    <script src="../js/k.loader.js"></script>
-    <script src="../js/k.async.js"></script>
+    <script src="../js/jquery.loader.js"></script>
+    <script src="../js/jquery.async.js"></script>
 
 </head>
 <body></body>
@@ -63,54 +63,6 @@ If you want to add a progress animation to this with jquery-async, change the ja
 When the `deferred` object is resolved or rejected, the animation on the button will stop and turn either green or red. The button becomes clickable again.
 
 
-### Link an ajax request to a asynchronous button
-
-Most of asynchronous processes are ajax, so jquery-async drops the unuseful function calling and bundles everything in one single call:
-```javascript
-	$('#my-button').async('ajax',{
-        type:'POST',
-        url:'http://your_domain.com/your_request'
-	});
-```
-An `$.ajax()` call is automatically made with the params, and the success of the call triggers the end animation of the button
-
-You can still intercept the `success` of the ajax, with the `deferred` params:
-```javascript
-	$('#my-button').async('ajax',{
-        type:'POST',
-        dataType:'jsonp',
-        url:'http://your_domain.com/your_request',
-        success:function(json,deferred){
-            //check if everything was allright
-            if(json.everything_worked){
-                deferred.resolve();
-            }
-            else{
-                //something went wrong
-                deferred.reject();
-            }
-        }
-	});
-```
-The ajax call was still successful and returned a JSON, but the button will turn red
-
-You can also construct the url with a function, and raise error while validating input:
-```javascript
-	$('#my-button').async('ajax',{
-        type:'POST',
-        url:function(deferred){
-            var inputValue = $('#input').val();
-            if(!$.isNumeric(inputValue)){
-                return false;
-            }
-            return 'http://your_domain.com/your_request?number='+inputValue;
-        }
-	});
-```
-If the `url` param is a function, it can either return `false` or a `String`. The ajax call will not be made if the function returns `false`
-The `data` params can also be a function returning a `String` or `false`.
-
-
 ### Embed params in the HTML
 
 Sometimes your javascript function is in a pre-compiled file and cannot have access to page-scoped params.
@@ -124,6 +76,26 @@ You can embed those params directly in your button's attributes, while you const
 	    //do something with userId
 	    deferred.resolve();
 	}
+```
+
+### Bind the function and loading animation on a different event
+
+You may want to trigger the function on 'change' instead of 'click'.
+Here is how to do it in html:
+```html
+	<a async-bind="change" async-function="doSomethingWithUserId" async-params="{userId:1452}"> Do something with User Name </a>
+```
+and javascript:
+```javascript
+	$('#my-button').async(function(deferred){
+    		setTimeout(function(){
+    			$('#hiddent-text').show();
+    			deferred.resolve();
+    		},2000);
+    	},
+    	{
+    	    bind:'change'
+    	});
 ```
 
 License
