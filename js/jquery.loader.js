@@ -1,5 +1,5 @@
 /* ===================================================
- * jquery-loader v1.1
+ * jquery-loader v1.2
  * https://github.com/acavailhez/jquery-async
  * ===================================================
  * Copyright 2013 Arnaud CAVAILHEZ & Michael JAVAULT
@@ -84,7 +84,7 @@ jQuery.fn.loader = function(data) {
             $loader.css('left','-'+$this.css('border-left-width'));
             $this.append($loader);
         }
-        $this.loaderDiv=$loader;
+        $this.data('loader',$loader);
         $loader.loading=true;
         animateHellip($loader);
     }
@@ -92,19 +92,20 @@ jQuery.fn.loader = function(data) {
     function stop($this){
         $this.removeClass("disabled");
 
-        var $kloader = $('.kloader',$this);
+        var $loader =  $this.data('loader');
 
-        if($kloader){
+        if($loader){
             delete $this.loaderDiv;
-            $kloader.fadeOut(function(){
-                $kloader.remove();
+            $loader.fadeOut(function(){
+                $loader.remove();
             });
         }
     }
 
     function success($this){
-        if($this.loaderDiv){
-            var $loader = $this.loaderDiv;
+        var $loader =  $this.data('loader');
+        if($loader){
+            var $loader = $this.data('loader');
             $loader.loading=false;
             var txt = 'success !';
             if($loader.width()<64){
@@ -120,8 +121,8 @@ jQuery.fn.loader = function(data) {
     }
 
     function error($this){
-        if($this.loaderDiv){
-            var $loader = $this.loaderDiv;
+        var $loader =  $this.data('loader');
+        if($loader){
             $loader.loading=false;
             var txt = 'error :(';
             if($loader.width()<64){
