@@ -1,5 +1,5 @@
 /* ===================================================
- * jquery-async v0.7
+ * jquery-async v0.8
  * https://github.com/acavailhez/jquery-async
  * ===================================================
  * Copyright 2013 Arnaud CAVAILHEZ & Michael JAVAULT
@@ -59,7 +59,15 @@ jQuery.fn.async = function(async, options) {
         $this.loader('start');
         var deferred = $.Deferred();
         if($.isFunction(async)){
-            var returned =  async(deferred);
+            var returned = false;
+            try{
+                returned =  async(deferred);
+            }
+            catch(ex){
+                // async function crashed
+                $this.loader('error');
+                throw ex;
+            }
             if (returned === true){
                 $this.loader('success');
             }
@@ -118,7 +126,7 @@ jQuery.fn.async = function(async, options) {
         //remove attributes of async
         //this makes this function nilpotent
         $element.attr('async-bind',undefined);
-
+        $element.attr('async-function',undefined);
     }
 
     return $this;
