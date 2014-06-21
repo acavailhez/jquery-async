@@ -52,27 +52,23 @@ jQuery.fn.async = function(async, options) {
         launchAsync();
     }
     else{
-        $this.bind(options.bind,launchAsync);
+        $this.on(options.bind,launchAsync);
     }
 
     function launchAsync(){
-        $this.loader('start');
+        var $button = $(this);
+        if($button.hasClass('disabled')){
+            return;
+        }
+        $button.loader('start');
         var deferred = $.Deferred();
         if($.isFunction(async)){
-            var returned = false;
-            try{
-                returned =  async(deferred);
-            }
-            catch(ex){
-                // async function crashed
-                $this.loader('error');
-                throw ex;
-            }
+            var returned =  async(deferred);
             if (returned === true){
-                $this.loader('success');
+                $button.loader('success');
             }
             else if(returned === false){
-                $this.loader('error');
+                $button.loader('error');
             }
             else{
                 //duck-check if returned is a Deferred.promise
@@ -81,28 +77,28 @@ jQuery.fn.async = function(async, options) {
                     var loaderLock = false;
                     returned
                         .done(function(){
-                            !loaderLock&&$this.loader('success');
+                            !loaderLock&&$button.loader('success');
                         })
                         .fail(function(){
-                            !loaderLock&&$this.loader('error');
+                            !loaderLock&&$button.loader('error');
                         });
                     deferred
                         .done(function(){
-                            $this.loader('success');
+                            $button.loader('success');
                             loaderLock=true;
                         })
                         .fail(function(){
-                            $this.loader('error');
+                            $button.loader('error');
                             loaderLock=true;
                         });
                 }
                 else{
                     deferred
                         .done(function(){
-                            $this.loader('success');
+                            $button.loader('success');
                         })
                         .fail(function(){
-                            $this.loader('error');
+                            $button.loader('error');
                         });
                 }
             }
@@ -126,7 +122,7 @@ jQuery.fn.async = function(async, options) {
         //remove attributes of async
         //this makes this function nilpotent
         $element.attr('async-bind',undefined);
-        $element.attr('async-function',undefined);
+
     }
 
     return $this;
